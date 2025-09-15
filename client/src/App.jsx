@@ -6,15 +6,14 @@ import PlayerGame from './components/PlayerGame.jsx'
 import FinalResults from './components/FinalResults.jsx'
 
 function Router() {
-  const { role, stage, phase } = useGame()
+  const { role, stage, phase, started, pin } = useGame()
 
-  // Final results screen for everyone
   if (phase === 'finished') return <FinalResults />
 
-  // Host should play too — once the game starts (prep/round/post), show PlayerGame
   if (role === 'host') {
-    if (phase === 'prep' || phase === 'round' || phase === 'post') return <PlayerGame />
-    return <HostLobby />
+    // Stay in HostLobby until game is actually started by host
+    if (!pin || !started) return <HostLobby />
+    return <PlayerGame />
   }
 
   if (role === 'player') {
@@ -22,16 +21,22 @@ function Router() {
     return <PlayerGame />
   }
 
-  return <div className="card">
-    <h1>Who Is First? — Realtime</h1>
-    <p className="small">Choose how you want to participate.</p>
-    <div className="row">
-      <button className="button" onClick={()=>window.location.hash='#host'}>Host a Game</button>
-      <button className="button secondary" onClick={()=>window.location.hash='#join'}>Join a Game</button>
+  return (
+    <div className="card">
+      <h1>Who Is First? — Realtime</h1>
+      <p className="small">Choose how you want to participate.</p>
+      <div className="row">
+        <button className="button" onClick={()=>window.location.hash='#host'}>Host a Game</button>
+        <button className="button secondary" onClick={()=>window.location.hash='#join'}>Join a Game</button>
+      </div>
     </div>
-  </div>
+  )
 }
 
 export default function App() {
-  return <div className="container"><GameProvider><Router /></GameProvider></div>
+  return (
+    <div className="container">
+      <GameProvider><Router /></GameProvider>
+    </div>
+  )
 }

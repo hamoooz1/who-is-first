@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useGame } from '../context/GameContext.jsx'
 
-// Available topics must match server datasets
 const ALL_TOPICS = [
   { id: 'name', label: 'Name' },
   { id: 'country', label: 'Country' },
@@ -12,12 +11,12 @@ const ALL_TOPICS = [
 ]
 
 export default function HostLobby() {
-  const { socket, pin, players, letter, phase, prepEndsTs, deadlineTs, postEndsTs, round, totalRounds, roundSeconds, now, setStage, setRole } = useGame()
+  const { socket, pin, players, letter, phase, prepEndsTs, deadlineTs, postEndsTs, round, totalRounds, roundSeconds, now } = useGame()
   const [created, setCreated] = useState(false)
   const [hostName, setHostName] = useState('')
   const [roundsInput, setRoundsInput] = useState(5)
   const [secondsInput, setSecondsInput] = useState(60)
-  const [topics, setTopics] = useState(ALL_TOPICS.map(t => t.id)) // default all selected
+  const [topics, setTopics] = useState(ALL_TOPICS.map(t => t.id))
 
   function toggleTopic(id) {
     setTopics(prev => prev.includes(id) ? prev.filter(x=>x!==id) : [...prev, id])
@@ -37,11 +36,8 @@ export default function HostLobby() {
   }
 
   function startGame() {
-    socket.emit('start_game', { pin }, (resp) => {
-      // Switch host into player view to play as well
-      setRole('host')
-      setStage('play')
-    })
+    // DO NOT set stage/role here; router will switch when server sets `started: true`
+    socket.emit('start_game', { pin })
   }
 
   const timeLeft = useMemo(() => {
@@ -55,31 +51,25 @@ export default function HostLobby() {
     <div className="card">
       <h1>Host Dashboard</h1>
       {!created ? (
-        <>
-          <div className="col" style={{maxWidth: 520}}>
-            <label className="small">Your name</label>
-            <input className="input" placeholder="Host name" value={hostName} onChange={e=>setHostName(e.target.value)} />
-
-            <label className="small">Number of rounds</label>
-            <input className="input" type="number" min="1" value={roundsInput} onChange={e=>setRoundsInput(e.target.value)} />
-
-            <label className="small">Seconds per round</label>
-            <input className="input" type="number" min="5" value={secondsInput} onChange={e=>setSecondsInput(e.target.value)} />
-
-            <label className="small">Topics</label>
-            <div className="list">
-              {ALL_TOPICS.map(t => (
-                <label key={t.id} className="list-item" style={{cursor:'pointer'}}>
-                  <div>{t.label}</div>
-                  <input type="checkbox" checked={topics.includes(t.id)} onChange={()=>toggleTopic(t.id)} />
-                </label>
-              ))}
-            </div>
-
-            <div className="spacer"></div>
-            <button className="button" onClick={createGame}>Create Game</button>
+        <div className="col" style={{maxWidth: 520}}>
+          <label className="small">Your name</label>
+          <input className="input" placeholder="Host name" value={hostName} onChange={e=>setHostName(e.target.value)} />
+          <label className="small">Number of rounds</label>
+          <input className="input" type="number" min="1" value={roundsInput} onChange={e=>setRoundsInput(e.target.value)} />
+          <label className="small">Seconds per round</label>
+          <input className="input" type="number" min="5" value={secondsInput} onChange={e=>setSecondsInput(e.target.value)} />
+          <label className="small">Topics</label>
+          <div className="list">
+            {ALL_TOPICS.map(t => (
+              <label key={t.id} className="list-item" style={{cursor:'pointer'}}>
+                <div>{t.label}</div>
+                <input type="checkbox" checked={topics.includes(t.id)} onChange={()=>toggleTopic(t.id)} />
+              </label>
+            ))}
           </div>
-        </>
+          <div className="spacer"></div>
+          <button className="button" onClick={createGame}>Create Game</button>
+        </div>
       ) : (
         <>
           <p className="small">Share this PIN with players:</p>

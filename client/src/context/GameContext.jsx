@@ -16,6 +16,7 @@ export function GameProvider({ children }) {
   const [round, setRound] = useState(1)
   const [totalRounds, setTotalRounds] = useState(5)
   const [roundSeconds, setRoundSeconds] = useState(60)
+  const [started, setStarted] = useState(false);
 
   const [phase, setPhase] = useState('prep') // 'prep' | 'round' | 'post' | 'finished'
   const [prepEndsTs, setPrepEndsTs] = useState(null)
@@ -45,6 +46,7 @@ export function GameProvider({ children }) {
       setPrepEndsTs(data.prepEndsTs || null)
       setDeadlineTs(data.deadlineTs || null)
       setPostEndsTs(data.postEndsTs || null)
+      setStarted(Boolean(data.started))
     })
 
     s.on('round_preparing', ({ letter, prepEndsTs }) => {
@@ -86,6 +88,7 @@ export function GameProvider({ children }) {
 
   const value = useMemo(() => ({
     role, setRole,
+    started, setStarted,
     stage, setStage,
     pin, setPin,
     name, setName,
@@ -96,7 +99,7 @@ export function GameProvider({ children }) {
     answers, setAnswers,
     finalLeaderboard, setFinalLeaderboard,
     socket: socketRef.current
-  }), [role, stage, pin, name, letter, nextLetter, categories, players, round, totalRounds, roundSeconds, phase, prepEndsTs, deadlineTs, postEndsTs, now, answers, finalLeaderboard])
+  }), [started, role, stage, pin, name, letter, nextLetter, categories, players, round, totalRounds, roundSeconds, phase, prepEndsTs, deadlineTs, postEndsTs, now, answers, finalLeaderboard])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
