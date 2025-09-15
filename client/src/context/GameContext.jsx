@@ -30,7 +30,13 @@ export function GameProvider({ children }) {
   const socketRef = useRef(null)
 
   useEffect(() => {
-    const s = io('http://localhost:5174', { transports: ['websocket'] })
+    const SOCKET_URL =
+      import.meta.env.VITE_SOCKET_URL || 'http://localhost:5174'
+
+    const s = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      path: '/socket.io',
+    })
     socketRef.current = s
 
     s.on('state', (data) => {
@@ -56,7 +62,7 @@ export function GameProvider({ children }) {
       setLetter(letter); setDeadlineTs(deadlineTs); setPhase('round')
     })
     s.on('answer_validated', ({ category, valid }) => {
-      setAnswers(prev => ({ ...prev, [category]: { ...(prev[category]||{}), valid } }))
+      setAnswers(prev => ({ ...prev, [category]: { ...(prev[category] || {}), valid } }))
     })
     s.on('round_over', ({ leaderboard, nextLetter, postEndsTs }) => {
       setPhase('post'); setPostEndsTs(postEndsTs); setNextLetter(nextLetter)

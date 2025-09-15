@@ -16,7 +16,17 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 const server = http.createServer(app)
-const io = new Server(server, { cors: { origin: '*' } })
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'https://who-is-first-mauve.vercel.app/',  
+      /\.vercel\.app$/                        // allow preview deployments too
+    ],
+    methods: ['GET', 'POST'],
+  },
+  path: '/socket.io',
+})
+
 
 /* ================================
    DATASETS (built-in + extras)
