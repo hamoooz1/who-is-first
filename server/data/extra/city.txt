@@ -1,0 +1,254 @@
+Abu Dhabi
+Abuja
+Accra
+Addis Ababa
+Adelaide
+Ahmedabad
+Algiers
+Amman
+Amsterdam
+Ankara
+Antananarivo
+Athens
+Atlanta
+Auckland
+Austin
+Baghdad
+Baku
+Bamako
+Bandung
+Bangkok
+Barcelona
+Basel
+Beijing
+Beirut
+Belo Horizonte
+Belgrade
+Berlin
+Bern
+Birmingham
+Bogotá
+Bologna
+Boston
+Bratislava
+Brazzaville
+Brisbane
+Brussels
+Bucharest
+Budapest
+Buenos Aires
+Bursa
+Busan
+Cairo
+Calgary
+Cali
+Campinas
+Cape Town
+Caracas
+Casablanca
+Chandigarh
+Changsha
+Chennai
+Chengdu
+Chicago
+Chittagong
+Chongqing
+Cincinnati
+Cleveland
+Cologne
+Colombo
+Copenhagen
+Da Nang
+Dallas
+Damascus
+Dar es Salaam
+Davao
+Delhi
+Denver
+Detroit
+Dhaka
+Doha
+Dubai
+Dublin
+Durban
+Edinburgh
+Edmonton
+Florence
+Fortaleza
+Frankfurt
+Fukuoka
+Geneva
+Genoa
+George Town
+Guadalajara
+Guangzhou
+Guatemala City
+Guayaquil
+Halifax
+Hamburg
+Hangzhou
+Hanoi
+Harare
+Hartford
+Havana
+Helsinki
+Ho Chi Minh City
+Hong Kong
+Honolulu
+Houston
+Hyderabad
+Ibadan
+Istanbul
+Izmir
+Jaipur
+Jakarta
+Jerusalem
+Jinan
+Johannesburg
+Karachi
+Kathmandu
+Khartoum
+Kigali
+Kinshasa
+Kobe
+Kolkata
+Kuala Lumpur
+Kumasi
+Kunming
+Kuwait City
+Kyiv
+Kyoto
+Lagos
+Lahore
+Las Vegas
+Lausanne
+Leeds
+Lima
+Lisbon
+Liverpool
+Ljubljana
+Lomé
+London
+Los Angeles
+Luanda
+Lusaka
+Luxembourg City
+Lyon
+Madrid
+Managua
+Manama
+Manila
+Maputo
+Marseille
+Mashhad
+Melbourne
+Memphis
+Mexico City
+Miami
+Milan
+Milwaukee
+Minneapolis
+Minsk
+Montréal
+Moscow
+Mumbai
+Munich
+Nairobi
+Nanjing
+Naples
+Nashville
+New Delhi
+New Orleans
+New York
+Newcastle
+Niamey
+Nice
+Nicosia
+Ningbo
+Osaka
+Oslo
+Ottawa
+Palermo
+Panama City
+Paramaribo
+Paris
+Perth
+Philadelphia
+Phnom Penh
+Phoenix
+Port Louis
+Port Moresby
+Port of Spain
+Porto
+Porto Alegre
+Port-au-Prince
+Portland
+Prague
+Pretoria
+Qingdao
+Quito
+Rabat
+Raleigh
+Recife
+Reykjavik
+Riga
+Rio de Janeiro
+Riyadh
+Rome
+Rotterdam
+Saint Petersburg
+Salt Lake City
+San Antonio
+San Diego
+San Francisco
+San Jose
+San Juan
+San Salvador
+Santiago
+Santo Domingo
+Sapporo
+Sarajevo
+Seattle
+Seoul
+Seville
+Shanghai
+Shenzhen
+Shiraz
+Singapore
+Skopje
+Sofia
+Soweto
+Stockholm
+Stuttgart
+Surabaya
+Sydney
+Taipei
+Tallinn
+Tangier
+Tashkent
+Tbilisi
+Tegucigalpa
+Tehran
+Tel Aviv
+Thessaloniki
+Tijuana
+Tirana
+Tokyo
+Toronto
+Tunis
+Ulaanbaatar
+Valencia
+Valletta
+Vancouver
+Venice
+Vienna
+Vilnius
+Warsaw
+Washington
+Wellington
+Wuhan
+Xi’an
+Yerevan
+Zagreb
+Zanzibar City
+Zurich

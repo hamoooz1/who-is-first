@@ -18,23 +18,101 @@ app.use(morgan('dev'))
 const server = http.createServer(app)
 const io = new Server(server, { cors: { origin: '*' } })
 
-// ===== Datasets (fast, in-memory) =====
+/* ================================
+   DATASETS (built-in + extras)
+   ================================ */
 const dataDir = path.join(__dirname, 'data')
+const extraDir = path.join(dataDir, 'extra')
 const ALL_TOPICS = ['name','country','city','animal','food','sport']
 
-const DATA = {}
-for (const fname of ALL_TOPICS) {
-  const raw = fs.readFileSync(path.join(dataDir, fname + '.json'), 'utf8')
-  DATA[fname] = new Set(JSON.parse(raw).map(v => v.toLowerCase()))
+// In-memory master sets (lowercased)
+let DATA = {}  // { topic: Set<string> }
+
+function ensureDirs() {
+  if (!fs.existsSync(extraDir)) fs.mkdirSync(extraDir, { recursive: true })
 }
 
-// ===== Helpers =====
+// Parse helpers
+function fromJSON(filePath) {
+  try {
+    const arr = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    if (Array.isArray(arr)) return arr
+  } catch {}
+  return []
+}
+function fromTXT(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8')
+    return raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+  } catch {}
+  return []
+}
+function fromCSV(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8')
+    return raw.split(/\r?\n/).map(line => line.split(',')[0]?.trim()).filter(Boolean)
+  } catch {}
+  return []
+}
+
+function loadTopic(topic) {
+  // base list: data/<topic>.json
+  const basePath = path.join(dataDir, `${topic}.json`)
+  let items = []
+  if (fs.existsSync(basePath)) items.push(...fromJSON(basePath))
+
+  // merge any extras from data/extra/<topic>.(txt|json|csv)
+  const candidates = [
+    path.join(extraDir, `${topic}.txt`),
+    path.join(extraDir, `${topic}.json`),
+    path.join(extraDir, `${topic}.csv`)
+  ]
+  for (const p of candidates) {
+    if (!fs.existsSync(p)) continue
+    if (p.endsWith('.txt')) items.push(...fromTXT(p))
+    else if (p.endsWith('.json')) items.push(...fromJSON(p))
+    else if (p.endsWith('.csv')) items.push(...fromCSV(p))
+  }
+
+  // normalize
+  const S = new Set()
+  for (const v of items) {
+    if (!v) continue
+    const norm = String(v).trim()
+    if (!norm) continue
+    S.add(norm.toLowerCase())
+  }
+  return S
+}
+
+function loadAllDatasets() {
+  ensureDirs()
+  const map = {}
+  for (const t of ALL_TOPICS) {
+    map[t] = loadTopic(t)
+  }
+  DATA = map
+  console.log('[datasets] loaded:',
+    Object.fromEntries(ALL_TOPICS.map(t => [t, DATA[t].size])))
+}
+
+// initial load
+loadAllDatasets()
+
+// Admin: see counts
+app.get('/admin/datasets', (_req, res) => {
+  res.json(Object.fromEntries(ALL_TOPICS.map(t => [t, DATA[t]?.size || 0])))
+})
+
+// Admin: hot reload after you add files
+app.post('/admin/reload-datasets', (_req, res) => {
+  loadAllDatasets()
+  res.json({ ok: true, sizes: Object.fromEntries(ALL_TOPICS.map(t => [t, DATA[t]?.size || 0])) })
+})
+
+/* ======= Helpers & Game Logic (uses DATA) ======= */
 function makePIN () {
   return (Math.floor(Math.random() * 900000) + 100000).toString()
-}
-function randomLetter () {
-  const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  return A[Math.floor(Math.random() * A.length)]
 }
 function validate (category, letter, value) {
   const cat = (category||'').toLowerCase()
@@ -44,19 +122,19 @@ function validate (category, letter, value) {
   if (!DATA[cat]) return false
   return DATA[cat].has(v)
 }
+function chooseNewLetter(game) {
+  const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+  const remaining = all.filter(l => !game.usedLetters.has(l))
+  const letter = (remaining.length ? remaining : all)[Math.floor(Math.random() * (remaining.length ? remaining.length : all.length))]
+  game.usedLetters.add(letter)
+  return letter
+}
 
 // ===== Game store =====
 const games = new Map()
-// game: {
-//   pin, hostSocketId,
-//   players: Map<socketId, {name, completed, score, answers:{[cat]:{value,valid}}}>,
-//   categories: string[],
-//   letter, nextLetter,
-//   round, totalRounds, roundSeconds,
-//   phase: 'prep' | 'round' | 'post' | 'finished',
-//   prepEndsTs, deadlineTs, postEndsTs,
-//   started, usedLetters:Set
-// }
+// game: { pin, hostSocketId, players, categories, letter, nextLetter,
+//         round, totalRounds, roundSeconds, phase, prepEndsTs, deadlineTs,
+//         postEndsTs, started, usedLetters }
 
 function publicState(game) {
   return {
@@ -84,23 +162,15 @@ function broadcastState(pin) {
   io.to(pin).emit('state', publicState(game))
 }
 
-function chooseNewLetter(game) {
-  const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-  const remaining = all.filter(l => !game.usedLetters.has(l))
-  const letter = (remaining.length ? remaining : all)[Math.floor(Math.random() * (remaining.length ? remaining.length : all.length))]
-  game.usedLetters.add(letter)
-  return letter
-}
-
 function schedulePrepEnd(game, pin) {
   // after 5s, move to ROUND and start global timer
   const delay = Math.max(0, (game.prepEndsTs || Date.now()) - Date.now() + 50)
   setTimeout(() => {
     const g = games.get(pin); if (!g || g.phase !== 'prep') return
-    // Clear answers at the exact start of the round to avoid carryover
+    // Clear answers at start of the round to avoid carryover
     for (const p of g.players.values()) {
       p.completed = false
-      p.answers = {}     // <<< IMPORTANT: fixes phantom points
+      p.answers = {}
     }
     g.phase = 'round'
     g.deadlineTs = Date.now() + g.roundSeconds * 1000
@@ -164,7 +234,7 @@ function endRoundAndMaybeAdvance(game, pin) {
     p.score += gained
     p.completed = true
   }
-  // Post phase: show leaderboard + next letter preview for 5s
+  // Post phase: leaderboard + next letter preview for 5s
   game.nextLetter = chooseNewLetter(game)
   game.phase = 'post'
   game.postEndsTs = Date.now() + 5000
@@ -247,12 +317,12 @@ io.on('connection', (socket) => {
     const valid = validate(category, game.letter, value)
     player.answers[category] = { value, valid }
     socket.emit('answer_validated', { category, valid })
-    // If this player finished first, end the round immediately
+    // FIRST finisher ends round immediately
     const allValid = game.categories.every(c => player.answers[c]?.valid === true)
     if (allValid) {
       player.completed = true
       io.to(game.pin).emit('player_completed', { name: player.name })
-      endRoundAndMaybeAdvance(game, pin)  // <<< FIRST-FINISH wins the round
+      endRoundAndMaybeAdvance(game, pin)
     }
     cb && cb({ ok:true, valid })
   })
@@ -262,7 +332,6 @@ io.on('connection', (socket) => {
     const game = games.get(pin)
     if (!game) { cb && cb({ ok:false, reason:'Game not found' }); return }
     if (socket.id !== game.hostSocketId) { cb && cb({ ok:false, reason:'Only host can restart' }); return }
-    // reset scores & state but keep categories/roundSeconds/totalRounds
     for (const p of game.players.values()) {
       p.score = 0
       p.completed = false
